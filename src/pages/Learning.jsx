@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocale } from '../context/LocaleContext';
 import { fetchMaterials } from '../services/materialService';
-import { BookOpen, Calculator, FlaskConical } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BookOpen, Calculator, FlaskConical, ArrowLeft } from 'lucide-react';
 
 const Learning = () => {
   const { t, locale } = useLocale();
@@ -21,7 +22,20 @@ const Learning = () => {
 
   return (
     <div className="pt-24 pb-24 px-4 min-h-screen">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative">
+        <Link 
+          to="/" 
+          className="absolute left-0 top-0 p-3 glass-card hover:bg-white/10 rounded-full flex items-center justify-center transition-colors z-20 hidden md:flex"
+        >
+          <ArrowLeft size={24} className="text-white" />
+        </Link>
+        <Link 
+          to="/" 
+          className="md:hidden flex items-center gap-2 mb-6 text-gray-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft size={20} /> Back to Home
+        </Link>
+        
         <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight text-center">
           {t('learning') || 'શીખવું'}
         </h1>

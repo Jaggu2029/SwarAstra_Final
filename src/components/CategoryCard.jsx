@@ -1,12 +1,15 @@
-﻿import React from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 
 // Maps each card to a spotlight variant from the design system
 const SPOTLIGHT_MAP = {
   "/sign-language": { gradient: "linear-gradient(135deg,#6a4cf5 0%,#8b6cf8 60%,#5a3ce8 100%)", glow: "rgba(106,76,245,0.35)", label: "ગ" },
   "/maths":         { gradient: "linear-gradient(135deg,#ff7a3d 0%,#ff9a5c 60%,#ff5a1a 100%)", glow: "rgba(255,122,61,0.35)",  label: "ગ" },
+  "/maths/practice":{ gradient: "linear-gradient(135deg,#ff7a3d 0%,#ff9a5c 60%,#ff5a1a 100%)", glow: "rgba(255,122,61,0.35)",  label: "ગ" },
   "/science":       { gradient: "linear-gradient(135deg,#d44df0 0%,#e86af5 60%,#c030e0 100%)", glow: "rgba(212,77,240,0.35)",  label: "ગ" },
+  "/science/practice":{ gradient: "linear-gradient(135deg,#d44df0 0%,#e86af5 60%,#c030e0 100%)", glow: "rgba(212,77,240,0.35)",  label: "ગ" },
   "/progress-report":{ gradient: "linear-gradient(135deg,#22c55e 0%,#4ade80 60%,#16a34a 100%)", glow: "rgba(34,197,94,0.30)",  label: "ગ" },
+  "/learning":      { gradient: "linear-gradient(135deg,#3b82f6 0%,#60a5fa 60%,#2563eb 100%)", glow: "rgba(59,130,246,0.35)",  label: "ગ" },
   "/teacher":       { gradient: "linear-gradient(135deg,#ff5577 0%,#ff7a96 60%,#ff2255 100%)", glow: "rgba(255,85,119,0.35)", label: "ગ" },
 };
 
