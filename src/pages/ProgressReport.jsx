@@ -5,7 +5,7 @@ import { useLocale } from '../context/LocaleContext';
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend 
 } from 'recharts';
-import { ArrowLeft, CheckCircle, CheckCircle2, Lock, AlertTriangle, TrendingUp, Clock, Target, Info, Calendar, RefreshCw } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CheckCircle2, Lock, AlertTriangle, TrendingUp, Clock, Target, Info, Calendar, RefreshCw, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   groupAttemptsBySession,
@@ -39,6 +39,7 @@ const ProgressReport = () => {
   const [levelProgression, setLevelProgression] = useState([]);
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [activityData, setActivityData] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const loadStudents = async () => {
@@ -203,13 +204,54 @@ const ProgressReport = () => {
 
 
       {((profile.role || '').toLowerCase() === 'teacher' || (profile.role || '').toLowerCase() === 'parent') && (
-        <div className="mb-8 max-w-sm">
-          <label className="block text-sm mb-2 text-gray-300">Select Student</label>
-          <select value={selectedStudent || ''} onChange={e => setSelectedStudent(e.target.value)}
-            className="w-full bg-black/30 border border-cardBorder rounded-lg px-4 py-2 focus:outline-none focus:border-primary-progress text-white [&>option]:bg-[#0B0F1A]">
-            <option value="" disabled>Select...</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+        <div className="mb-8 max-w-sm relative z-50">
+          <label className="block text-sm mb-2 text-gray-400 font-medium tracking-wide uppercase">Select Student</label>
+          <div className="relative">
+            <button 
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="w-full bg-[#141414] border border-[#333] rounded-xl px-5 py-3.5 flex items-center justify-between focus:outline-none focus:border-primary-progress transition-all shadow-sm hover:bg-[#1a1a1a]"
+            >
+              <span className="text-white font-medium">
+                {selectedStudent 
+                  ? (students.find(s => s.id === selectedStudent)?.name || 'Guest / Me')
+                  : 'Select a student...'}
+              </span>
+              <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {dropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#141414] border border-[#333] rounded-xl shadow-2xl overflow-hidden animate-fade-in-up z-50">
+                <div className="max-h-64 overflow-y-auto custom-scrollbar p-2">
+                  <button
+                    onClick={() => { setSelectedStudent(session?.user?.id || 'guest_user'); setDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3 ${selectedStudent === (session?.user?.id || 'guest_user') ? 'bg-primary-progress/20 text-primary-progress font-semibold' : 'text-gray-300 hover:bg-white/5'}`}
+                  >
+                    My Progress (Teacher/Parent)
+                  </button>
+                  
+                  {students.length > 0 && <div className="h-px bg-[#333] my-2 mx-2"></div>}
+                  
+                  {students.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => { setSelectedStudent(s.id); setDropdownOpen(false); }}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3 ${selectedStudent === s.id ? 'bg-primary-progress/20 text-primary-progress font-semibold' : 'text-gray-300 hover:bg-white/5'}`}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-sm font-bold text-white shadow-inner flex-shrink-0">
+                        {s.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="truncate">{s.name}</span>
+                    </button>
+                  ))}
+                  {students.length === 0 && (
+                    <div className="px-4 py-6 text-center text-gray-500 text-sm">
+                      No students linked yet. <br/><Link to="/teacher" className="text-primary-progress hover:underline mt-1 inline-block">Add students here</Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
