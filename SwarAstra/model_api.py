@@ -22,6 +22,39 @@ Example response:
 """
 
 import io
+import sys
+import os
+import ctypes
+
+# Fallback dynamic loader for headless Linux cloud environments (Render, Heroku, AWS)
+# where libGLESv2.so.2 system library might not be pre-installed.
+try:
+    ctypes.CDLL("libGLESv2.so.2")
+except OSError:
+    for candidate in [
+        "/usr/lib/x86_64-linux-gnu/libGL.so.1",
+        "/usr/lib/x86_64-linux-gnu/libEGL.so.1",
+        "libGL.so.1",
+        "libEGL.so.1",
+        "libGL.so",
+    ]:
+        try:
+            handle = ctypes.CDLL(candidate, mode=ctypes.RTLD_GLOBAL)
+            tmp_so = "/tmp/libGLESv2.so.2"
+            if not os.path.exists(tmp_so):
+                target_path = getattr(handle, "_name", candidate)
+                try:
+                    os.symlink(target_path, tmp_so)
+                except Exception:
+                    pass
+            os.environ["LD_LIBRARY_PATH"] = "/tmp:" + os.environ.get("LD_LIBRARY_PATH", "")
+            try:
+                ctypes.CDLL(tmp_so, mode=ctypes.RTLD_GLOBAL)
+            except Exception:
+                pass
+            break
+        except Exception:
+            pass
 
 import mediapipe as mp
 import numpy as np
@@ -30,6 +63,7 @@ from flask_cors import CORS
 from mediapipe.tasks import python as mp_tasks
 from mediapipe.tasks.python import vision as mp_vision
 from PIL import Image
+
 import joblib
 
 MODEL_TASK_PATH = "hand_landmarker.task"
