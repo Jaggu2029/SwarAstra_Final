@@ -50,16 +50,18 @@ export const uploadMaterial = async (teacherId, file, module, title) => {
 
 export const fetchMaterials = async (module) => {
   try {
-    const { data, error } = await supabase
-      .from('study_materials')
-      .select('*')
-      .eq('module', module)
-      .order('created_at', { ascending: false });
+    let query = supabase.from('study_materials').select('*').order('created_at', { ascending: false });
+    
+    if (module) {
+      query = query.eq('module', module);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error(`Error fetching ${module} materials:`, error.message);
+    console.error(`Error fetching materials:`, error.message);
     return [];
   }
 };
