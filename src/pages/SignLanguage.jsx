@@ -92,6 +92,11 @@ const SignLearning = () => {
     if (isAKha && !isBKha) return -1;
     if (!isAKha && isBKha) return 1;
 
+    const isAGa = a.sign_text_en?.toLowerCase() === 'ga' || a.sign_text_gu === 'ગ';
+    const isBGa = b.sign_text_en?.toLowerCase() === 'ga' || b.sign_text_gu === 'ગ';
+    if (isAGa && !isBGa) return -1;
+    if (!isAGa && isBGa) return 1;
+
     return 0;
   });
 
