@@ -13,6 +13,7 @@ const Maths = lazy(() => import('./pages/Maths'));
 const Science = lazy(() => import('./pages/Science'));
 const ProgressReport = lazy(() => import('./pages/ProgressReport'));
 const TeacherPanel = lazy(() => import('./pages/TeacherPanel'));
+const AddStudents = lazy(() => import('./pages/AddStudents'));
 
 const ProtectedRoute = ({ children }) => {
   const { session } = useSession();
@@ -59,6 +60,7 @@ const AppContent = () => {
           <Route path="/science/*" element={<ProtectedRoute><Science /></ProtectedRoute>} />
           <Route path="/progress-report" element={<ProtectedRoute><ProgressReport /></ProtectedRoute>} />
           <Route path="/teacher" element={<ProtectedRoute><TeacherPanel /></ProtectedRoute>} />
+          <Route path="/add-students" element={<ProtectedRoute><AddStudents /></ProtectedRoute>} />
           <Route path="/splash" element={<SplashScreen forcePlay={true} targetRoute="/login" />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

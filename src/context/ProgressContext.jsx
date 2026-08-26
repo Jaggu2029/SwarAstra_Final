@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useCallback } from 'react';
-import { logAttempt as serviceLogAttempt, getUserAttempts, getLinkedStudents, getUserProgress, updateUserProgress } from '../services/progressService';
+import { logAttempt as serviceLogAttempt, getUserAttempts, getLinkedStudents, getUserProgress, updateUserProgress, searchStudents as serviceSearchStudents, addStudentLink as serviceAddStudentLink } from '../services/progressService';
 import { useSession } from './SessionContext';
 
 const ProgressContext = createContext();
@@ -65,8 +65,17 @@ export const ProgressProvider = ({ children }) => {
     }
   }, [session]);
 
+  const searchStudents = useCallback(async (query) => {
+    return await serviceSearchStudents(query);
+  }, []);
+
+  const addStudentLink = useCallback(async (studentId) => {
+    if (!session?.user?.id) return false;
+    return await serviceAddStudentLink(session.user.id, studentId);
+  }, [session]);
+
   return (
-    <ProgressContext.Provider value={{ logAttempt, fetchAttempts, fetchLinkedStudents, fetchUserProgress, saveUserProgress }}>
+    <ProgressContext.Provider value={{ logAttempt, fetchAttempts, fetchLinkedStudents, fetchUserProgress, saveUserProgress, searchStudents, addStudentLink }}>
       {children}
     </ProgressContext.Provider>
   );

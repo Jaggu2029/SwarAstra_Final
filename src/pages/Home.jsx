@@ -3,7 +3,7 @@ import { useLocale } from "../context/LocaleContext";
 import { useSession } from "../context/SessionContext";
 import CategoryCard from "../components/CategoryCard";
 import AITutorWidget from "../components/AITutorWidget";
-import { Hand, Calculator, FlaskConical, BarChart3, GraduationCap } from "lucide-react";
+import { Hand, Calculator, FlaskConical, BarChart3, GraduationCap, Users } from "lucide-react";
 
 function useReveal() {
   const ref = useRef(null);
@@ -41,6 +41,7 @@ const HomePage = () => {
     { to: "/science",         key: "science",  title: t("category_science"),  icon: FlaskConical, show: true },
     { to: "/progress-report", key: "progress", title: t("category_progress"), icon: BarChart3,    show: true },
     { to: "/teacher",         key: "teacher",  title: "Add Questions",        icon: GraduationCap,show: isTeacher },
+    { to: "/add-students",    key: "add_students", title: "Add Students",     icon: Users,        show: isTeacher },
   ].filter(c => c.show);
 
   return (

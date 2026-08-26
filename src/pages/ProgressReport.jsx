@@ -41,6 +41,17 @@ const ProgressReport = () => {
   const [activityData, setActivityData] = useState([]);
 
   useEffect(() => {
+    const loadStudents = async () => {
+      const isTeacherOrParent = ((profile?.role || '').toLowerCase() === 'teacher' || (profile?.role || '').toLowerCase() === 'parent');
+      if (isTeacherOrParent) {
+        const linked = await fetchLinkedStudents();
+        setStudents(linked);
+      }
+    };
+    if (profile) loadStudents();
+  }, [profile, fetchLinkedStudents]);
+
+  useEffect(() => {
     const studentId = selectedStudent || session?.user?.id || 'guest_user';
     if (selectedStudent !== studentId) {
       setSelectedStudent(studentId);

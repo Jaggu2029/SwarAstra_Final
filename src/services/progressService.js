@@ -228,3 +228,34 @@ export const getLinkedStudents = async (linkedUserId) => {
   return [];
 };
 
+export const searchStudents = async (searchQuery) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('role', 'student')
+      .ilike('full_name', `%${searchQuery}%`)
+      .limit(20);
+    
+    if (!error && data) {
+      return data;
+    }
+  } catch (err) {
+    console.warn('[searchStudents] Supabase error:', err.message);
+  }
+  return [];
+};
+
+export const addStudentLink = async (teacherId, studentId) => {
+  try {
+    const { data, error } = await supabase
+      .from('student_links')
+      .insert([{ linked_user_id: teacherId, student_id: studentId }]);
+      
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.warn('[addStudentLink] Supabase error:', err.message);
+    return false;
+  }
+};
