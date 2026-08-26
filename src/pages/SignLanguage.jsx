@@ -386,7 +386,7 @@ const SignPractice = () => {
         result.label &&
         target &&
         result.label.toLowerCase() === target.label.toLowerCase() &&
-        result.confidence >= 0.55
+        result.confidence >= 0.10
       ) {
         setChallengeMatched(true);
         setScore(s => s + 10);
