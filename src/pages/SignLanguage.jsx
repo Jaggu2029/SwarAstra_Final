@@ -147,9 +147,6 @@ const SignLearning = () => {
       ) : (
         <>
           {/* Counter */}
-          <p style={{ fontSize: 11, color: "#555", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 500, margin: 0 }}>
-            {activeIndex + 1} / {filteredContent.length}
-          </p>
 
           {/* Main card */}
           <div style={{ width: "100%", maxWidth: 680, background: "#141414", border: "1px solid #262626", borderRadius: 20, padding: "32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 32, position: "relative", overflow: "hidden" }}>
@@ -221,9 +218,6 @@ const SignLearning = () => {
               aria-label="Next sign"
             >→</button>
           </div>
-          <p style={{ fontSize: 12, color: "#444", marginTop: 4, letterSpacing: "-0.1px" }}>
-            Use search, arrows or dots to navigate · {filteredContent.length} signs
-          </p>
         </>
       )}
     </div>
