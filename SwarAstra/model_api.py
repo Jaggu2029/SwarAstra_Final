@@ -26,35 +26,58 @@ import sys
 import os
 import ctypes
 
-# Fallback dynamic loader for headless Linux cloud environments (Render, Heroku, AWS)
-# where libGLESv2.so.2 system library might not be pre-installed.
-try:
-    ctypes.CDLL("libGLESv2.so.2")
-except OSError:
-    for candidate in [
-        "/usr/lib/x86_64-linux-gnu/libGL.so.1",
-        "/usr/lib/x86_64-linux-gnu/libEGL.so.1",
-        "libGL.so.1",
-        "libEGL.so.1",
-        "libGL.so",
-    ]:
+def _fix_gles():
+    try:
+        ctypes.CDLL("libGLESv2.so.2")
+        return
+    except OSError:
+        pass
+
+    tmp_dir = "/tmp/sys_libs"
+    os.makedirs(tmp_dir, exist_ok=True)
+    target_so = os.path.join(tmp_dir, "libGLESv2.so.2")
+
+    search_dirs = [
+        "/usr/lib/x86_64-linux-gnu",
+        "/usr/lib",
+        "/lib/x86_64-linux-gnu",
+    ]
+    for p in sys.path:
+        if "site-packages" in p:
+            cv2_libs = os.path.join(p, "cv2", ".libs")
+            if os.path.exists(cv2_libs):
+                search_dirs.append(cv2_libs)
+
+    found_path = None
+    for d in search_dirs:
+        if not os.path.exists(d):
+            continue
         try:
-            handle = ctypes.CDLL(candidate, mode=ctypes.RTLD_GLOBAL)
-            tmp_so = "/tmp/libGLESv2.so.2"
-            if not os.path.exists(tmp_so):
-                target_path = getattr(handle, "_name", candidate)
-                try:
-                    os.symlink(target_path, tmp_so)
-                except Exception:
-                    pass
-            os.environ["LD_LIBRARY_PATH"] = "/tmp:" + os.environ.get("LD_LIBRARY_PATH", "")
-            try:
-                ctypes.CDLL(tmp_so, mode=ctypes.RTLD_GLOBAL)
-            except Exception:
-                pass
-            break
+            for fname in os.listdir(d):
+                if "libGL" in fname or "libEGL" in fname:
+                    found_path = os.path.join(d, fname)
+                    break
         except Exception:
             pass
+        if found_path:
+            break
+
+    if found_path and not os.path.exists(target_so):
+        try:
+            os.symlink(found_path, target_so)
+        except Exception:
+            pass
+
+    ld_path = os.environ.get("LD_LIBRARY_PATH", "")
+    os.environ["LD_LIBRARY_PATH"] = f"{tmp_dir}:{ld_path}"
+
+    if found_path:
+        try:
+            ctypes.CDLL(found_path, mode=ctypes.RTLD_GLOBAL)
+        except Exception:
+            pass
+
+_fix_gles()
 
 import mediapipe as mp
 import numpy as np
@@ -63,6 +86,7 @@ from flask_cors import CORS
 from mediapipe.tasks import python as mp_tasks
 from mediapipe.tasks.python import vision as mp_vision
 from PIL import Image
+
 
 import joblib
 

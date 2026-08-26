@@ -3,7 +3,8 @@ flask-cors
 python-dotenv
 google-genai
 streamlit
-opencv-python-headless
+opencv-python
+
 mediapipe
 scikit-learn
 numpy
