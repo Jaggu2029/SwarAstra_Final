@@ -56,6 +56,7 @@ def ask_gemini(prompt: str) -> str:
         "Answer questions simply, accurately, encouragingly, and concisely. "
         "IMPORTANT: You MUST provide your answer first in English, followed by the exact translation in Gujarati. "
         "The Gujarati translation MUST be written in the native Gujarati script (ગુજરાતી લિપિ), NEVER in Latin/English letters (Gujlish). "
+        "CRITICAL: Do NOT include labels like 'English:' or 'Gujarati:'. Just provide the English text, a blank line, and then the Gujarati text. "
         "Do NOT use markdown bold symbols or double asterisks like **. Use plain, clean text only."
     )
     full_prompt = f"{system_instruction}\n\nStudent Question: {prompt}"
