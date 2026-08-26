@@ -38,6 +38,7 @@ const ProgressReport = () => {
   const [mathsErrorPattern, setMathsErrorPattern] = useState(null);
   const [levelProgression, setLevelProgression] = useState([]);
   const [totalAttempts, setTotalAttempts] = useState(0);
+  const [activityData, setActivityData] = useState([]);
 
   useEffect(() => {
     const studentId = selectedStudent || session?.user?.id || 'guest_user';
@@ -109,6 +110,23 @@ const ProgressReport = () => {
         const sc = scienceRolling.find(s => s.date === date);
         return { date, mathsAccuracy: m ? Math.round(m.rollingAccuracy) : null, scienceAccuracy: sc ? Math.round(sc.rollingAccuracy) : null };
       }));
+
+      // Calculate monthly activity chart (Tests per day)
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const dailyCounts = Array.from({ length: daysInMonth }, (_, i) => ({
+        day: i + 1,
+        tests: 0
+      }));
+      [...mA, ...sA].forEach(a => {
+        const d = new Date(a.timestamp);
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+          dailyCounts[d.getDate() - 1].tests++;
+        }
+      });
+      setActivityData(dailyCounts);
 
       const mMastery = calculateWeightedMastery(mathsSessions);
       const sMastery = calculateWeightedMastery(scienceSessions);
@@ -276,7 +294,8 @@ const ProgressReport = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="glass-card p-6 min-h-[350px] lg:col-span-2">
               <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-gray-400" /> Accuracy Trend (Moving Average)
+                <TrendingUp className="w-5 h-5 text-gray-400" /> 
+                {trendData.length > 1 ? "Accuracy Trend (Moving Average)" : "Monthly Activity (Tests per Day)"}
               </h3>
               {trendData.length > 1 ? (
                 <div className="h-[250px] w-full mt-4">
@@ -293,9 +312,21 @@ const ProgressReport = () => {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="flex flex-col h-[250px] items-center justify-center text-gray-400 gap-2 text-center">
-                  <TrendingUp className="w-10 h-10 opacity-30" />
-                  <p>Trend line appears after practicing on multiple days.</p>
+                <div className="h-[250px] w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={activityData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                      <XAxis dataKey="day" stroke="#666" tick={{ fill: '#888', fontSize: 12 }} interval="preserveStartEnd" />
+                      <YAxis stroke="#666" tick={{ fill: '#888', fontSize: 12 }} allowDecimals={false} />
+                      <Tooltip 
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                        contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                        labelFormatter={(label) => `Day ${label}`}
+                        formatter={(value) => [value, 'Tests Given']}
+                      />
+                      <Bar dataKey="tests" fill="#d44df0" radius={[4, 4, 0, 0]} maxBarSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               )}
             </div>
