@@ -214,12 +214,12 @@ const SAMPLE_CHALLENGES = [
   { label: 'jha', gu: 'ઝ', name: 'Zha' },
   { label: 'kha', gu: 'ખ', name: 'Kha' },
   { label: 'ka', gu: 'ક', name: 'Ka' },
-  { label: 'tthaaa', gu: 'ઠ', name: 'Tha' },
   { label: 'ra', gu: 'ર', name: 'Ra' },
   { label: 'la', gu: 'લ', name: 'La' },
   { label: 'va', gu: 'વ', name: 'Va' },
   { label: 'tha', gu: 'થ', name: 'Tha' },
   { label: 'pha', gu: 'ફ', name: 'Pha' },
+  { label: 'tthaaa', gu: 'ઠ', name: 'Tha' },
   
   // Remaining signs
   { label: 'ga', gu: 'ગ', name: 'Ga' },
