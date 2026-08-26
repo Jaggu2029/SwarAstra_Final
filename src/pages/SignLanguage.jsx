@@ -214,9 +214,11 @@ const SAMPLE_CHALLENGES = [
   { label: 'jha', gu: 'ઝ', name: 'Zha' },
   { label: 'kha', gu: 'ખ', name: 'Kha' },
   { label: 'ka', gu: 'ક', name: 'Ka' },
-  { label: 'ra', gu: 'ર', name: 'Ra' },
+  { label: 'la', gu: 'લ', name: 'La' },
   { label: 'va', gu: 'વ', name: 'Va' },
   { label: 'pha', gu: 'ફ', name: 'Pha' },
+  { label: 'ra', gu: 'ર', name: 'Ra' },
+  { label: 'tha', gu: 'થ', name: 'Tha' },
   { label: 'tthaaa', gu: 'ઠ', name: 'Tha' },
   
   // Remaining signs
@@ -230,8 +232,6 @@ const SAMPLE_CHALLENGES = [
   { label: 'ma', gu: 'મ', name: 'Ma' },
   { label: 'sa', gu: 'સ', name: 'Sa' },
   { label: 'ha', gu: 'હ', name: 'Ha' },
-  { label: 'la', gu: 'લ', name: 'La' },
-  { label: 'tha', gu: 'થ', name: 'Tha' },
 ];
 
 const SignPractice = () => {
