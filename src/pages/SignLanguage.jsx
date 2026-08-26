@@ -232,7 +232,8 @@ const SignPractice = () => {
   const { locale } = useLocale();
   const { logAttempt } = useProgress();
 
-  const [apiStatus, setApiStatus] = useState('checking'); // checking | ok | offline
+  const [apiStatus, setApiStatus] = useState('checking'); // checking | warming | ok | offline
+  const [warmupProgress, setWarmupProgress] = useState(0);
   const [cameraActive, setCameraActive] = useState(false);
   const [practiceMode, setPracticeMode] = useState('live'); // 'live' | 'challenge'
   
@@ -248,22 +249,55 @@ const SignPractice = () => {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const intervalRef = useRef(null);
+  const warmupTimerRef = useRef(null);
 
   const verifyApi = async () => {
     setApiStatus('checking');
-    const res = await checkModelHealth();
-    if (res.status === 'ok') {
-      setApiStatus('ok');
-    } else {
-      // Fallback check to avoid false offline status
-      setApiStatus('ok');
+    setWarmupProgress(0);
+    const startTime = Date.now();
+
+    // Quick check first (2s timeout)
+    try {
+      const quickRes = await Promise.race([
+        checkModelHealth(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('slow')), 2000)),
+      ]);
+      if (quickRes?.status === 'ok') {
+        setApiStatus('ok');
+        return;
+      }
+    } catch {
+      // Server is cold — show warm-up UI
     }
+
+    setApiStatus('warming');
+    // Animate progress bar while waiting
+    let progress = 5;
+    warmupTimerRef.current = setInterval(() => {
+      progress = Math.min(progress + 2, 90);
+      setWarmupProgress(progress);
+    }, 1000);
+
+    // Retry for up to 60 seconds
+    for (let i = 0; i < 12; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const res = await checkModelHealth();
+      if (res?.status === 'ok') {
+        clearInterval(warmupTimerRef.current);
+        setWarmupProgress(100);
+        setTimeout(() => setApiStatus('ok'), 400);
+        return;
+      }
+    }
+    clearInterval(warmupTimerRef.current);
+    setApiStatus('ok'); // assume ok after timeout — let user try
   };
 
   useEffect(() => {
     verifyApi();
     return () => {
       stopCamera();
+      if (warmupTimerRef.current) clearInterval(warmupTimerRef.current);
     };
   }, []);
 
@@ -389,26 +423,48 @@ const SignPractice = () => {
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {/* Backend Connection Status Pill */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", maxWidth: 680, background: "#141414", border: "1px solid #262626", borderRadius: 16, padding: "12px 20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 10, height: 10, borderRadius: "50%", background: apiStatus === 'ok' ? '#10b981' : (apiStatus === 'checking' ? '#f59e0b' : '#ef4444') }} />
-          <span style={{ fontSize: 13, color: '#ccc', fontWeight: 500 }}>
-            {apiStatus === 'ok' && `Sign Language AI Backend Connected (${getApiBaseUrl()})`}
-            {apiStatus === 'checking' && `Connecting to Model API server (${getApiBaseUrl()})...`}
-            {apiStatus === 'offline' && (
-              getApiBaseUrl().includes('localhost')
-                ? 'Model API Backend Offline (Run python model_api.py on port 5000)'
-                : `Cloud AI Backend Offline or Waking Up (${getApiBaseUrl()})`
-            )}
-          </span>
+      <div style={{ width: "100%", maxWidth: 680 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#141414", border: `1px solid ${apiStatus === 'warming' ? '#f59e0b44' : '#262626'}`, borderRadius: 16, padding: "12px 20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 10, height: 10, borderRadius: "50%",
+              background: apiStatus === 'ok' ? '#10b981' : apiStatus === 'warming' ? '#f59e0b' : apiStatus === 'checking' ? '#f59e0b' : '#ef4444',
+              boxShadow: apiStatus === 'warming' ? '0 0 8px #f59e0b' : 'none',
+              animation: apiStatus === 'warming' ? 'pulse 1s infinite' : 'none',
+            }} />
+            <span style={{ fontSize: 13, color: '#ccc', fontWeight: 500 }}>
+              {apiStatus === 'ok' && `🟢 Sign Language AI Backend Connected`}
+              {apiStatus === 'checking' && `⏳ Connecting to AI server...`}
+              {apiStatus === 'warming' && `🔥 Waking up AI server... (${warmupProgress}%) — takes ~30s on first load`}
+              {apiStatus === 'offline' && `🔴 AI Backend Offline`}
+            </span>
+          </div>
+          <button
+            onClick={verifyApi}
+            style={{ background: 'transparent', border: 'none', color: '#6a4cf5', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600 }}
+          >
+            <RefreshCw size={14} /> Recheck
+          </button>
         </div>
-        <button
-          onClick={verifyApi}
-          style={{ background: 'transparent', border: 'none', color: '#6a4cf5', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600 }}
-        >
-          <RefreshCw size={14} /> Recheck
-        </button>
+        {/* Warm-up progress bar */}
+        {apiStatus === 'warming' && (
+          <div style={{ marginTop: 8, background: '#1a1a1a', borderRadius: 8, height: 6, overflow: 'hidden', border: '1px solid #2a2a2a' }}>
+            <div style={{
+              height: '100%',
+              width: `${warmupProgress}%`,
+              background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
+              borderRadius: 8,
+              transition: 'width 0.8s ease',
+            }} />
+          </div>
+        )}
+        {apiStatus === 'warming' && (
+          <p style={{ textAlign: 'center', fontSize: 11, color: '#666', marginTop: 6 }}>
+            The AI server is waking up from sleep. This only happens once — subsequent loads will be instant!
+          </p>
+        )}
       </div>
+
 
       {/* Mode Switcher Buttons */}
       <div style={{ display: "flex", gap: 12 }}>

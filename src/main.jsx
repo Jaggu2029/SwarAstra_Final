@@ -5,6 +5,11 @@ import './index.css';
 import { LocaleProvider } from './context/LocaleContext.jsx';
 import { SessionProvider } from './context/SessionContext.jsx';
 import { ProgressProvider } from './context/ProgressContext.jsx';
+import { startKeepAlive } from './services/keepAlive.js';
+
+// Keep the Render backend warm so sign language detection has no cold-start delay
+startKeepAlive();
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
