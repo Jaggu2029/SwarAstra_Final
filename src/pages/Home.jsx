@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocale } from "../context/LocaleContext";
 import { useSession } from "../context/SessionContext";
 import CategoryCard from "../components/CategoryCard";
+import ActivityChart from "../components/ActivityChart";
 import AITutorWidget from "../components/AITutorWidget";
 import { Hand, Calculator, FlaskConical, BarChart3, GraduationCap } from "lucide-react";
 
@@ -130,6 +131,12 @@ const HomePage = () => {
             />
           </div>
         ))}
+        {/* Fill the empty space with the Activity Chart for non-teachers */}
+        {!isTeacher && (
+          <div className="animate-fade-up" style={{ animationDelay: `${cards.length * 0.07}s` }}>
+            <ActivityChart />
+          </div>
+        )}
       </div>
 
       {/* ── Divider ───────────────────────────────────────────────────── */}
