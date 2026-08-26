@@ -232,7 +232,7 @@ export const searchStudents = async (searchQuery) => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name, email')
+      .select('id, full_name')
       .ilike('full_name', `%${searchQuery}%`)
       .limit(20);
     
