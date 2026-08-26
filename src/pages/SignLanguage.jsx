@@ -86,6 +86,12 @@ const SignLearning = () => {
     const isBChha = b.sign_text_en?.toLowerCase() === 'chha' || b.sign_text_gu === 'છ';
     if (isAChha && !isBChha) return -1;
     if (!isAChha && isBChha) return 1;
+
+    const isAKha = a.sign_text_en?.toLowerCase() === 'kha' || a.sign_text_gu === 'ખ';
+    const isBKha = b.sign_text_en?.toLowerCase() === 'kha' || b.sign_text_gu === 'ખ';
+    if (isAKha && !isBKha) return -1;
+    if (!isAKha && isBKha) return 1;
+
     return 0;
   });
 
