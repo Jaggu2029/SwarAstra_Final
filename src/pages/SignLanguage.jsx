@@ -253,6 +253,7 @@ const SignPractice = () => {
   const [challengeIndex, setChallengeIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [challengeMatched, setChallengeMatched] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -387,6 +388,7 @@ const SignPractice = () => {
           logAttempt({ module: 'sign_language', level: 1, correct: true, label: target.label });
         }
       } else {
+        setFailedAttempts(f => f + 1);
         if (logAttempt) {
           logAttempt({ module: 'sign_language', level: 1, correct: false, label: target.label });
         }
@@ -401,6 +403,7 @@ const SignPractice = () => {
 
   const nextChallenge = () => {
     handleRetake();
+    setFailedAttempts(0);
     setChallengeIndex(i => (i + 1) % SAMPLE_CHALLENGES.length);
   };
 
@@ -410,39 +413,7 @@ const SignPractice = () => {
     <div style={{ marginTop: 24, display: "flex", flexDirection: "column", alignItems: "center", gap: 24, width: "100%" }}>
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-      {/* Backend Connection Status Pill */}
-      <div style={{ width: "100%", maxWidth: 680 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#141414", border: `1px solid ${apiStatus === 'warming' ? '#f59e0b44' : '#262626'}`, borderRadius: 16, padding: "12px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{
-              width: 10, height: 10, borderRadius: "50%",
-              background: apiStatus === 'ok' ? '#10b981' : apiStatus === 'warming' ? '#f59e0b' : apiStatus === 'checking' ? '#f59e0b' : '#ef4444',
-              boxShadow: apiStatus === 'warming' ? '0 0 8px #f59e0b' : 'none',
-              animation: apiStatus === 'warming' ? 'pulse 1s infinite' : 'none',
-            }} />
-            <span style={{ fontSize: 13, color: '#ccc', fontWeight: 500 }}>
-              {apiStatus === 'ok' && `🟢 Sign Language AI Backend Connected`}
-              {apiStatus === 'checking' && `⏳ Connecting to AI server...`}
-              {apiStatus === 'warming' && `🔥 Waking up AI server... (${warmupProgress}%) — takes ~30s on first load`}
-              {apiStatus === 'offline' && `🔴 AI Backend Offline`}
-            </span>
-          </div>
-          <button
-            onClick={verifyApi}
-            style={{ background: 'transparent', border: 'none', color: '#6a4cf5', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600 }}
-          >
-            <RefreshCw size={14} /> Recheck
-          </button>
-        </div>
-        {apiStatus === 'warming' && (
-          <div style={{ marginTop: 8, background: '#1a1a1a', borderRadius: 8, height: 6, overflow: 'hidden', border: '1px solid #2a2a2a' }}>
-            <div style={{
-              height: '100%', width: `${warmupProgress}%`,
-              background: 'linear-gradient(90deg, #f59e0b, #ef4444)', borderRadius: 8, transition: 'width 0.8s ease',
-            }} />
-          </div>
-        )}
-      </div>
+      {/* Backend Connection Status Pill Removed as requested */}
 
       {/* Challenge Mode Prompt Header */}
       {targetChallenge && (
@@ -459,7 +430,20 @@ const SignPractice = () => {
               <button onClick={nextChallenge} style={{ marginLeft: 16, background: "#10b981", color: "#000", border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 800, cursor: "pointer" }}>Next Sign →</button>
             </div>
           ) : (
-            <p style={{ fontSize: 13, color: "#888", margin: 0, marginTop: 8 }}>Perform the sign in front of your camera, capture, and verify!</p>
+            <>
+              {failedAttempts >= 3 && (
+                <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+                  <span style={{ fontSize: 14, color: "#f59e0b", fontWeight: 600 }}>Having trouble? You can skip this sign.</span>
+                  <button onClick={nextChallenge} style={{ background: "#f59e0b", color: "#000", border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 800, cursor: "pointer" }}>Skip Sign →</button>
+                </div>
+              )}
+              {currentPrediction && !challengeMatched && (
+                <div style={{ marginTop: 12, background: "#ef444422", border: "1px solid #ef444488", borderRadius: 12, padding: "8px", color: "#ef4444", fontWeight: 600, display: "inline-block" }}>
+                  Hmm, that looks like '{currentPrediction.gu}' ({currentPrediction.label}). Try again!
+                </div>
+              )}
+              <p style={{ fontSize: 13, color: "#888", margin: 0, marginTop: 12 }}>Perform the sign in front of your camera, capture, and verify!</p>
+            </>
           )}
         </div>
       )}
