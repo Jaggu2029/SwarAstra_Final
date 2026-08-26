@@ -4,7 +4,7 @@ import { ArrowLeft, Search, UserPlus, CheckCircle, AlertTriangle, Loader2 } from
 import { Link } from 'react-router-dom';
 
 const AddStudents = () => {
-  const { searchStudents, addStudentLink } = useProgress();
+  const { searchStudents, addStudentLink, fetchLinkedStudents } = useProgress();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -12,6 +12,14 @@ const AddStudents = () => {
   const [error, setError] = useState(null);
   const [addedStudents, setAddedStudents] = useState(new Set());
   const [hasSearched, setHasSearched] = useState(false);
+
+  React.useEffect(() => {
+    const loadExistingStudents = async () => {
+      const linked = await fetchLinkedStudents();
+      setAddedStudents(new Set(linked.map(s => s.student_id)));
+    };
+    loadExistingStudents();
+  }, [fetchLinkedStudents]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
