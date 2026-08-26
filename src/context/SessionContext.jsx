@@ -20,15 +20,21 @@ export const SessionProvider = ({ children }) => {
           setLoading(false);
           return;
         }
-      } catch (err) {
-        // Profile may not exist yet (signup race condition) — retry
+        // data is null — profile doesn't exist yet (signup race condition)
         if (attempt < retries) {
           await new Promise((r) => setTimeout(r, delayMs * Math.pow(2, attempt)));
           continue;
         }
-        console.error('Error fetching profile after retries:', err);
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        if (attempt < retries) {
+          await new Promise((r) => setTimeout(r, delayMs * Math.pow(2, attempt)));
+          continue;
+        }
       }
     }
+    // All retries exhausted — profile genuinely doesn't exist
+    setProfile(null);
     setLoading(false);
   }, []);
 
@@ -68,3 +74,4 @@ export const SessionProvider = ({ children }) => {
     </SessionContext.Provider>
   );
 };
+

@@ -11,9 +11,9 @@ export const signUpUser = async (email, password, fullName, role) => {
   if (data.user) {
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert([
+      .upsert([
         { id: data.user.id, full_name: fullName, role }
-      ]);
+      ], { onConflict: 'id' });
       
     if (profileError) throw profileError;
   }
@@ -40,8 +40,9 @@ export const getUserProfile = async (userId) => {
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
     
   if (error) throw error;
-  return data;
+  return data; // returns null if no profile exists (instead of throwing 406)
 };
+
