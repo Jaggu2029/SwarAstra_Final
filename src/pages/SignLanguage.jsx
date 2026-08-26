@@ -439,7 +439,7 @@ const SignPractice = () => {
               )}
               {currentPrediction && !challengeMatched && (
                 <div style={{ marginTop: 12, background: "#ef444422", border: "1px solid #ef444488", borderRadius: 12, padding: "8px", color: "#ef4444", fontWeight: 600, display: "inline-block" }}>
-                  Hmm, that looks like '{currentPrediction.gu}' ({currentPrediction.label}). Try again!
+                  Hmm, that looks like '{SAMPLE_CHALLENGES.find(c => c.label.toLowerCase() === currentPrediction.label?.toLowerCase())?.gu || currentPrediction.label}' ({currentPrediction.label}). Try again!
                 </div>
               )}
               <p style={{ fontSize: 13, color: "#888", margin: 0, marginTop: 12 }}>Perform the sign in front of your camera, capture, and verify!</p>
