@@ -211,13 +211,13 @@ const SignLearning = () => {
 
 const SAMPLE_CHALLENGES = [
   { label: 'ja', gu: 'જ', name: 'Ja' },
-  { label: 'jha', gu: 'ઝ', name: 'Zha' },
+  { label: 'la', gu: 'લ', name: 'La' },
   { label: 'kha', gu: 'ખ', name: 'Kha' },
   { label: 'ka', gu: 'ક', name: 'Ka' },
-  { label: 'la', gu: 'લ', name: 'La' },
   { label: 'va', gu: 'વ', name: 'Va' },
-  { label: 'pha', gu: 'ફ', name: 'Pha' },
+  { label: 'jha', gu: 'ઝ', name: 'Zha' },
   { label: 'ha', gu: 'હ', name: 'Ha' },
+  { label: 'pha', gu: 'ફ', name: 'Pha' },
   { label: 'tha', gu: 'થ', name: 'Tha' },
   { label: 'tthaaa', gu: 'ઠ', name: 'Tha' },
   
