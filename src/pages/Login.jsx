@@ -435,9 +435,7 @@ const Login = () => {
 
               {/* Form */}
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {isSignUp && (
-                  <InputField icon={User} label="Full Name" type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" required />
-                )}
+                <InputField icon={User} label="Username" type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your username" required />
                 <InputField icon={Mail} label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
                 <InputField icon={Lock} label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
 
