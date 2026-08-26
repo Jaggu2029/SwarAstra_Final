@@ -13,7 +13,7 @@ from google import genai
 # Load .env file automatically
 load_dotenv(find_dotenv(usecwd=True))
 
-MODEL_NAMES = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+MODEL_NAMES = ["gemini-flash-lite-latest", "gemini-3.7-flash", "gemini-3.6-flash"]
 
 
 _client = None
