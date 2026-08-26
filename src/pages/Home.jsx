@@ -3,7 +3,7 @@ import { useLocale } from "../context/LocaleContext";
 import { useSession } from "../context/SessionContext";
 import CategoryCard from "../components/CategoryCard";
 import AITutorWidget from "../components/AITutorWidget";
-import { Hand, Calculator, FlaskConical, BarChart3, GraduationCap, Users } from "lucide-react";
+import { Hand, Calculator, FlaskConical, BarChart3, GraduationCap, Users, BookOpen } from "lucide-react";
 
 function useReveal() {
   const ref = useRef(null);
@@ -37,8 +37,9 @@ const HomePage = () => {
 
   const cards = [
     { to: "/sign-language",   key: "sign",     title: t("category_sign"),     icon: Hand,         show: true },
-    { to: "/maths",           key: "maths",    title: t("category_maths"),    icon: Calculator,   show: true },
-    { to: "/science",         key: "science",  title: t("category_science"),  icon: FlaskConical, show: true },
+    { to: "/maths/practice",  key: "maths",    title: t("category_maths"),    icon: Calculator,   show: true },
+    { to: "/science/practice",key: "science",  title: t("category_science"),  icon: FlaskConical, show: true },
+    { to: "/learning",        key: "learning", title: t("learning") || "Learning", icon: BookOpen, show: true },
     { to: "/progress-report", key: "progress", title: t("category_progress"), icon: BarChart3,    show: true },
     { to: "/teacher",         key: "teacher",  title: "Add Questions",        icon: GraduationCap,show: isTeacher },
     { to: "/add-students",    key: "add_students", title: "Add Students",     icon: Users,        show: isTeacher },

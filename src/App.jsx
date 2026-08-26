@@ -11,6 +11,7 @@ const Login = lazy(() => import('./pages/Login'));
 const SignLanguage = lazy(() => import('./pages/SignLanguage'));
 const Maths = lazy(() => import('./pages/Maths'));
 const Science = lazy(() => import('./pages/Science'));
+const Learning = lazy(() => import('./pages/Learning'));
 const ProgressReport = lazy(() => import('./pages/ProgressReport'));
 const TeacherPanel = lazy(() => import('./pages/TeacherPanel'));
 const AddStudents = lazy(() => import('./pages/AddStudents'));
@@ -58,6 +59,7 @@ const AppContent = () => {
           <Route path="/sign-language/*" element={<ProtectedRoute><SignLanguage /></ProtectedRoute>} />
           <Route path="/maths/*" element={<ProtectedRoute><Maths /></ProtectedRoute>} />
           <Route path="/science/*" element={<ProtectedRoute><Science /></ProtectedRoute>} />
+          <Route path="/learning" element={<ProtectedRoute><Learning /></ProtectedRoute>} />
           <Route path="/progress-report" element={<ProtectedRoute><ProgressReport /></ProtectedRoute>} />
           <Route path="/teacher" element={<ProtectedRoute><TeacherPanel /></ProtectedRoute>} />
           <Route path="/add-students" element={<ProtectedRoute><AddStudents /></ProtectedRoute>} />
