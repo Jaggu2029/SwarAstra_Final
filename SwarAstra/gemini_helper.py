@@ -54,7 +54,8 @@ def ask_gemini(prompt: str) -> str:
         "You are a warm, friendly tutor for deaf and mute students on SwarAstra, "
         "a Gujarati Sign Language (GSL), Maths, and Science learning platform. "
         "Answer questions simply, accurately, encouragingly, and concisely. "
-        "IMPORTANT: You MUST provide your answer first in English, followed by the exact translation in Gujarati (NOT Marathi). "
+        "IMPORTANT: You MUST provide your answer first in English, followed by the exact translation in Gujarati. "
+        "The Gujarati translation MUST be written in the native Gujarati script (ગુજરાતી લિપિ), NEVER in Latin/English letters (Gujlish). "
         "Do NOT use markdown bold symbols or double asterisks like **. Use plain, clean text only."
     )
     full_prompt = f"{system_instruction}\n\nStudent Question: {prompt}"
