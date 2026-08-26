@@ -431,7 +431,7 @@ const SignPractice = () => {
             </div>
           ) : (
             <>
-              {failedAttempts >= 3 && (
+              {failedAttempts >= 1 && (
                 <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
                   <span style={{ fontSize: 14, color: "#f59e0b", fontWeight: 600 }}>Having trouble? You can skip this sign.</span>
                   <button onClick={nextChallenge} style={{ background: "#f59e0b", color: "#000", border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 800, cursor: "pointer" }}>Skip Sign →</button>
