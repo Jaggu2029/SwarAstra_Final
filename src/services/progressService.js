@@ -233,17 +233,19 @@ export const searchStudents = async (searchQuery) => {
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, email')
-      .eq('role', 'student')
       .ilike('full_name', `%${searchQuery}%`)
       .limit(20);
     
-    if (!error && data) {
-      return data;
+    if (error) {
+      console.error('[searchStudents] API Error:', error);
+      throw error;
     }
+    
+    return data || [];
   } catch (err) {
-    console.warn('[searchStudents] Supabase error:', err.message);
+    console.error('[searchStudents] Exception:', err.message);
+    throw err;
   }
-  return [];
 };
 
 export const addStudentLink = async (teacherId, studentId) => {
