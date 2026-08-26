@@ -90,7 +90,7 @@ const ActivityChart = () => {
             />
             <Bar 
               dataKey="tests" 
-              fill="#d44df0" 
+              fill="#22d3ee" 
               radius={[4, 4, 0, 0]} 
               maxBarSize={12}
             />

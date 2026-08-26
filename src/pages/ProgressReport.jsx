@@ -324,7 +324,7 @@ const ProgressReport = () => {
                         labelFormatter={(label) => `Day ${label}`}
                         formatter={(value) => [value, 'Tests Given']}
                       />
-                      <Bar dataKey="tests" fill="#d44df0" radius={[4, 4, 0, 0]} maxBarSize={20} />
+                      <Bar dataKey="tests" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={20} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
