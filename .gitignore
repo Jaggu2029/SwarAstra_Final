@@ -23,7 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
-.env.*
+.env.local
+.env.*.local
 
 # Python
 __pycache__/

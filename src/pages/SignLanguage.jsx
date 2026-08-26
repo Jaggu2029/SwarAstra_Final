@@ -369,7 +369,7 @@ const SignPractice = () => {
       const result = await predictSign(file);
       setCurrentPrediction(result);
     } catch (err) {
-      alert('Error analyzing image. Please ensure model API is running at http://localhost:5000');
+      alert('Error analyzing image. Please ensure the Sign Language AI backend is online.');
     } finally {
       setIsAnalyzing(false);
     }
