@@ -81,6 +81,12 @@ const SignLearning = () => {
       (item.description_en && item.description_en.toLowerCase().includes(q)) ||
       (item.description_gu && item.description_gu.includes(searchTerm.trim()))
     );
+  }).sort((a, b) => {
+    const isAChha = a.sign_text_en?.toLowerCase() === 'chha' || a.sign_text_gu === 'છ';
+    const isBChha = b.sign_text_en?.toLowerCase() === 'chha' || b.sign_text_gu === 'છ';
+    if (isAChha && !isBChha) return -1;
+    if (!isAChha && isBChha) return 1;
+    return 0;
   });
 
   const activeIndex = Math.min(index, Math.max(0, filteredContent.length - 1));
