@@ -1,9 +1,9 @@
 FROM python:3.11-slim
 
-# Install system graphic libraries required by MediaPipe & OpenCV
+# Install modern Debian system graphic libraries required by MediaPipe & OpenCV
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgles2-mesa \
-    libgl1-mesa-glx \
+    libgl1 \
+    libgles2 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
