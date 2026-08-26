@@ -431,12 +431,10 @@ const SignPractice = () => {
             </div>
           ) : (
             <>
-              {failedAttempts >= 1 && (
-                <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-                  <span style={{ fontSize: 14, color: "#f59e0b", fontWeight: 600 }}>Having trouble? You can skip this sign.</span>
-                  <button onClick={nextChallenge} style={{ background: "#f59e0b", color: "#000", border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 800, cursor: "pointer" }}>Skip Sign →</button>
-                </div>
-              )}
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+                <span style={{ fontSize: 14, color: "#aaa", fontWeight: 600 }}>Not sure about this one?</span>
+                <button onClick={nextChallenge} style={{ background: "#333", color: "#fff", border: "1px solid #444", borderRadius: 8, padding: "4px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Skip Sign →</button>
+              </div>
               {currentPrediction && !challengeMatched && (
                 <div style={{ marginTop: 12, background: "#ef444422", border: "1px solid #ef444488", borderRadius: 12, padding: "8px", color: "#ef4444", fontWeight: 600, display: "inline-block" }}>
                   Hmm, that looks like '{SAMPLE_CHALLENGES.find(c => c.label.toLowerCase() === currentPrediction.label?.toLowerCase())?.gu || currentPrediction.label}' ({currentPrediction.label}). Try again!
