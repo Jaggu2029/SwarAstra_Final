@@ -235,10 +235,13 @@ const SignPractice = () => {
   const [apiStatus, setApiStatus] = useState('checking'); // checking | warming | ok | offline
   const [warmupProgress, setWarmupProgress] = useState(0);
   const [cameraActive, setCameraActive] = useState(false);
-  const [practiceMode, setPracticeMode] = useState('live'); // 'live' | 'challenge'
   
   const [currentPrediction, setCurrentPrediction] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Capture mode states
+  const [capturedImageURL, setCapturedImageURL] = useState(null);
+  const [capturedBlob, setCapturedBlob] = useState(null);
 
   // Challenge mode
   const [challengeIndex, setChallengeIndex] = useState(0);
@@ -248,15 +251,12 @@ const SignPractice = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
-  const intervalRef = useRef(null);
   const warmupTimerRef = useRef(null);
 
   const verifyApi = async () => {
     setApiStatus('checking');
     setWarmupProgress(0);
-    const startTime = Date.now();
 
-    // Quick check first (2s timeout)
     try {
       const quickRes = await Promise.race([
         checkModelHealth(),
@@ -271,14 +271,12 @@ const SignPractice = () => {
     }
 
     setApiStatus('warming');
-    // Animate progress bar while waiting
     let progress = 5;
     warmupTimerRef.current = setInterval(() => {
       progress = Math.min(progress + 2, 90);
       setWarmupProgress(progress);
     }, 1000);
 
-    // Retry for up to 60 seconds
     for (let i = 0; i < 12; i++) {
       await new Promise(r => setTimeout(r, 5000));
       const res = await checkModelHealth();
@@ -290,19 +288,10 @@ const SignPractice = () => {
       }
     }
     clearInterval(warmupTimerRef.current);
-    setApiStatus('ok'); // assume ok after timeout — let user try
+    setApiStatus('ok');
   };
 
-  useEffect(() => {
-    verifyApi();
-    return () => {
-      stopCamera();
-      if (warmupTimerRef.current) clearInterval(warmupTimerRef.current);
-    };
-  }, []);
-
   const startCamera = async () => {
-    setApiStatus('ok');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
@@ -319,90 +308,85 @@ const SignPractice = () => {
     }
   };
 
+  useEffect(() => {
+    verifyApi().then(() => {
+      startCamera();
+    });
+    return () => {
+      stopCamera();
+      if (warmupTimerRef.current) clearInterval(warmupTimerRef.current);
+    };
+  }, []);
 
   const stopCamera = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
     setCameraActive(false);
-    setCurrentPrediction(null);
   };
 
-  const captureAndPredict = async () => {
-    if (!videoRef.current || !canvasRef.current || isAnalyzing) return;
-
+  const handleCapture = () => {
+    if (!videoRef.current || !canvasRef.current || !cameraActive) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (video.readyState !== 4) return;
-
+    
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
     const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
+    
+    // Draw mirrored so it matches what the user sees
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    setIsAnalyzing(true);
-    canvas.toBlob(async (blob) => {
-      if (!blob) {
-        setIsAnalyzing(false);
-        return;
-      }
-      try {
-        const result = await predictSign(blob);
-        setCurrentPrediction(result);
-        setApiStatus('ok');
-
-        const target = SAMPLE_CHALLENGES[challengeIndex];
-
-        if (
-          practiceMode === 'challenge' &&
-          result.hand_detected &&
-          result.label &&
-          target &&
-          result.label.toLowerCase() === target.label.toLowerCase() &&
-          result.confidence >= 0.55 &&
-          !challengeMatched
-        ) {
-          setChallengeMatched(true);
-          setScore(s => s + 10);
-          if (logAttempt) {
-            logAttempt({ module: 'sign_language', level: 1, correct: true, label: target.label });
-          }
-        }
-      } catch (e) {
-        console.error('Prediction error:', e);
-      } finally {
-        setIsAnalyzing(false);
-      }
-    }, 'image/png');
+    
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    setCapturedImageURL(dataUrl);
+    
+    canvas.toBlob((blob) => {
+      setCapturedBlob(blob);
+    }, 'image/jpeg', 0.9);
+    
+    setCurrentPrediction(null);
+    setChallengeMatched(false);
   };
 
-  useEffect(() => {
-    if (cameraActive) {
-      intervalRef.current = setInterval(() => {
-        captureAndPredict();
-      }, 500);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [cameraActive, practiceMode, challengeIndex, challengeMatched]);
+  const handleRetake = () => {
+    setCapturedImageURL(null);
+    setCapturedBlob(null);
+    setCurrentPrediction(null);
+    setChallengeMatched(false);
+  };
 
-
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleVerify = async () => {
+    if (!capturedBlob) return;
     setIsAnalyzing(true);
+    
     try {
-      const result = await predictSign(file);
+      const result = await predictSign(capturedBlob);
       setCurrentPrediction(result);
+      
+      const target = SAMPLE_CHALLENGES[challengeIndex];
+      
+      if (
+        result.hand_detected &&
+        result.label &&
+        target &&
+        result.label.toLowerCase() === target.label.toLowerCase() &&
+        result.confidence >= 0.55
+      ) {
+        setChallengeMatched(true);
+        setScore(s => s + 10);
+        if (logAttempt) {
+          logAttempt({ module: 'sign_language', level: 1, correct: true, label: target.label });
+        }
+      } else {
+        if (logAttempt) {
+          logAttempt({ module: 'sign_language', level: 1, correct: false, label: target.label });
+        }
+      }
     } catch (err) {
+      console.error('Prediction error:', err);
       alert('Error analyzing image. Please ensure the Sign Language AI backend is online.');
     } finally {
       setIsAnalyzing(false);
@@ -410,8 +394,7 @@ const SignPractice = () => {
   };
 
   const nextChallenge = () => {
-    setChallengeMatched(false);
-    setCurrentPrediction(null);
+    handleRetake();
     setChallengeIndex(i => (i + 1) % SAMPLE_CHALLENGES.length);
   };
 
@@ -419,7 +402,6 @@ const SignPractice = () => {
 
   return (
     <div style={{ marginTop: 24, display: "flex", flexDirection: "column", alignItems: "center", gap: 24, width: "100%" }}>
-      {/* Hidden canvas for capturing video frames */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {/* Backend Connection Status Pill */}
@@ -446,64 +428,32 @@ const SignPractice = () => {
             <RefreshCw size={14} /> Recheck
           </button>
         </div>
-        {/* Warm-up progress bar */}
         {apiStatus === 'warming' && (
           <div style={{ marginTop: 8, background: '#1a1a1a', borderRadius: 8, height: 6, overflow: 'hidden', border: '1px solid #2a2a2a' }}>
             <div style={{
-              height: '100%',
-              width: `${warmupProgress}%`,
-              background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
-              borderRadius: 8,
-              transition: 'width 0.8s ease',
+              height: '100%', width: `${warmupProgress}%`,
+              background: 'linear-gradient(90deg, #f59e0b, #ef4444)', borderRadius: 8, transition: 'width 0.8s ease',
             }} />
           </div>
         )}
-        {apiStatus === 'warming' && (
-          <p style={{ textAlign: 'center', fontSize: 11, color: '#666', marginTop: 6 }}>
-            The AI server is waking up from sleep. This only happens once — subsequent loads will be instant!
-          </p>
-        )}
-      </div>
-
-
-      {/* Mode Switcher Buttons */}
-      <div style={{ display: "flex", gap: 12 }}>
-        <button
-          onClick={() => { setPracticeMode('live'); setChallengeMatched(false); }}
-          style={{
-            padding: "10px 20px", borderRadius: 12, border: practiceMode === 'live' ? "2px solid #6a4cf5" : "1px solid #262626",
-            background: practiceMode === 'live' ? "rgba(106,76,245,0.15)" : "#141414", color: practiceMode === 'live' ? "#fff" : "#888",
-            fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s"
-          }}
-        >
-          <Camera size={16} /> Free Practice
-        </button>
-        <button
-          onClick={() => { setPracticeMode('challenge'); setChallengeMatched(false); }}
-          style={{
-            padding: "10px 20px", borderRadius: 12, border: practiceMode === 'challenge' ? "2px solid #6a4cf5" : "1px solid #262626",
-            background: practiceMode === 'challenge' ? "rgba(106,76,245,0.15)" : "#141414", color: practiceMode === 'challenge' ? "#fff" : "#888",
-            fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s"
-          }}
-        >
-          <Award size={16} /> Sign Challenge ({score} pts)
-        </button>
       </div>
 
       {/* Challenge Mode Prompt Header */}
-      {practiceMode === 'challenge' && targetChallenge && (
+      {targetChallenge && (
         <div style={{ width: "100%", maxWidth: 680, background: "linear-gradient(135deg, rgba(106,76,245,0.15), rgba(212,77,240,0.15))", border: "1px solid rgba(106,76,245,0.4)", borderRadius: 18, padding: "20px", textAlign: "center" }}>
           <p style={{ fontSize: 13, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0 }}>Target Sign Challenge</p>
           <h2 style={{ fontSize: 36, fontWeight: 900, color: "#fff", margin: "6px 0" }}>
             Show Sign for: <span style={{ color: "#6a4cf5" }}>{targetChallenge.gu}</span> ({targetChallenge.name})
           </h2>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#d44df0", marginTop: 4 }}>Score: {score} pts</div>
+          
           {challengeMatched ? (
             <div style={{ marginTop: 12, background: "#10b98122", border: "1px solid #10b98188", borderRadius: 12, padding: "10px", color: "#10b981", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <Sparkles size={20} /> Correct Match! +10 Points!
               <button onClick={nextChallenge} style={{ marginLeft: 16, background: "#10b981", color: "#000", border: "none", borderRadius: 8, padding: "6px 14px", fontWeight: 800, cursor: "pointer" }}>Next Sign →</button>
             </div>
           ) : (
-            <p style={{ fontSize: 13, color: "#888", margin: 0 }}>Perform the sign in front of your camera!</p>
+            <p style={{ fontSize: 13, color: "#888", margin: 0, marginTop: 8 }}>Perform the sign in front of your camera, capture, and verify!</p>
           )}
         </div>
       )}
@@ -512,76 +462,88 @@ const SignPractice = () => {
       <div style={{ width: "100%", maxWidth: 680, background: "#141414", border: "1px solid #262626", borderRadius: 20, padding: 24, display: "flex", flexDirection: "column", alignItems: "center", gap: 20, position: "relative" }}>
         
         <div style={{ width: "100%", aspectRatio: "16/9", background: "#080808", borderRadius: 16, border: "1px solid #222", overflow: "hidden", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: cameraActive ? "block" : "none", transform: "scaleX(-1)" }}
-          />
+          {!capturedImageURL ? (
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: cameraActive ? "block" : "none", transform: "scaleX(-1)" }}
+            />
+          ) : (
+            <img 
+              src={capturedImageURL} 
+              alt="Captured frame" 
+              style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+            />
+          )}
 
-          {!cameraActive && (
+          {!cameraActive && !capturedImageURL && (
             <div style={{ textAlign: "center", padding: 32, color: "#666" }}>
               <Camera size={48} style={{ margin: "0 auto 12px", opacity: 0.4 }} />
-              <p style={{ fontSize: 15, fontWeight: 600, color: "#aaa" }}>Webcam is turned off</p>
-              <p style={{ fontSize: 13, opacity: 0.7 }}>Click "Start Camera" below or upload an image to begin sign recognition</p>
+              <p style={{ fontSize: 15, fontWeight: 600, color: "#aaa" }}>Camera starting...</p>
             </div>
           )}
 
-          {/* Analyzing Spinner Badge */}
-          {cameraActive && isAnalyzing && (
-            <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.6)", padding: "4px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", color: "#aaa", fontSize: 11, display: "flex", alignItems: "center", gap: 6 }}>
-              <RefreshCw size={12} className="animate-spin" /> Analyzing...
+          {isAnalyzing && (
+            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 16, fontWeight: 600, gap: 8 }}>
+              <RefreshCw size={24} className="animate-spin" /> Verifying Sign...
             </div>
           )}
         </div>
 
         {/* Camera Control Buttons */}
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "center" }}>
-          {!cameraActive ? (
+          {!capturedImageURL ? (
             <button
-              onClick={startCamera}
-              disabled={apiStatus === 'offline'}
+              onClick={handleCapture}
+              disabled={!cameraActive || apiStatus === 'offline'}
               style={{
-                padding: "12px 28px", borderRadius: 14, border: "none",
-                background: apiStatus === 'offline' ? "#333" : "linear-gradient(90deg, #6a4cf5, #d44df0)",
-                color: "#fff", fontWeight: 800, fontSize: 15, cursor: apiStatus === 'offline' ? "not-allowed" : "pointer",
-                display: "flex", alignItems: "center", gap: 10, shadow: "0 4px 14px rgba(106,76,245,0.4)"
+                padding: "12px 32px", borderRadius: 14, border: "none",
+                background: (!cameraActive || apiStatus === 'offline') ? "#333" : "linear-gradient(90deg, #6a4cf5, #d44df0)",
+                color: "#fff", fontWeight: 800, fontSize: 15, cursor: (!cameraActive || apiStatus === 'offline') ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", gap: 10, boxShadow: (!cameraActive || apiStatus === 'offline') ? "none" : "0 4px 14px rgba(106,76,245,0.4)"
               }}
             >
-              <Video size={18} /> Start Camera
+              <Camera size={18} /> Capture
             </button>
           ) : (
-            <button
-              onClick={stopCamera}
-              style={{
-                padding: "12px 28px", borderRadius: 14, border: "1px solid #ef444455",
-                background: "rgba(239,68,68,0.15)", color: "#ef4444", fontWeight: 800, fontSize: 15, cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 10
-              }}
-            >
-              <VideoOff size={18} /> Stop Camera
-            </button>
+            <>
+              <button
+                onClick={handleRetake}
+                disabled={isAnalyzing}
+                style={{
+                  padding: "12px 28px", borderRadius: 14, border: "1px solid #ef444455",
+                  background: "rgba(239,68,68,0.15)", color: "#ef4444", fontWeight: 800, fontSize: 15, 
+                  cursor: isAnalyzing ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", gap: 10
+                }}
+              >
+                <RefreshCw size={18} /> Retake
+              </button>
+              
+              <button
+                onClick={handleVerify}
+                disabled={isAnalyzing || challengeMatched}
+                style={{
+                  padding: "12px 32px", borderRadius: 14, border: "none",
+                  background: (isAnalyzing || challengeMatched) ? "#333" : "#10b981", color: (isAnalyzing || challengeMatched) ? "#888" : "#000", 
+                  fontWeight: 800, fontSize: 15, cursor: (isAnalyzing || challengeMatched) ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", gap: 10, boxShadow: (isAnalyzing || challengeMatched) ? "none" : "0 4px 14px rgba(16,185,129,0.4)"
+                }}
+              >
+                <Sparkles size={18} /> Verify
+              </button>
+            </>
           )}
-
-          <label
-            style={{
-              padding: "12px 24px", borderRadius: 14, border: "1px solid #333",
-              background: "#1c1c1c", color: "#ccc", fontWeight: 700, fontSize: 14, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 8
-            }}
-          >
-            <Upload size={16} /> Upload Photo
-            <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: "none" }} />
-          </label>
         </div>
 
-        {/* Real-time Recognition Result Card */}
-        {(currentPrediction || cameraActive) && (
-          <div style={{ width: "100%", background: "#0a0a0a", border: "1px solid #222", borderRadius: 16, padding: "20px", marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            {currentPrediction?.hand_detected ? (
+        {/* Prediction Result Display (Only after Verify) */}
+        {currentPrediction && !isAnalyzing && (
+          <div style={{ width: "100%", background: "#0a0a0a", border: `1px solid ${challengeMatched ? '#10b981' : '#ef4444'}`, borderRadius: 16, padding: "20px", marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            {currentPrediction.hand_detected ? (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <div style={{ width: 64, height: 64, borderRadius: 16, background: "rgba(106,76,245,0.2)", border: "1px solid #6a4cf5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 900, color: "#6a4cf5" }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: challengeMatched ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)", border: `1px solid ${challengeMatched ? '#10b981' : '#ef4444'}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontWeight: 900, color: challengeMatched ? '#10b981' : '#ef4444' }}>
                     {currentPrediction.gujaratiLabel || '?'}
                   </div>
                   <div>
@@ -603,7 +565,7 @@ const SignPractice = () => {
             ) : (
               <div style={{ width: "100%", textAlign: "center", color: "#aaa", padding: "8px 0" }}>
                 <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#e2e8f0" }}>
-                  {isAnalyzing ? "🤖 AI Analyzing Sign..." : "✋ Waiting for hand in frame... Position your hand in the center of the camera."}
+                  ✋ No hand detected in the image. Please retake.
                 </p>
               </div>
             )}
