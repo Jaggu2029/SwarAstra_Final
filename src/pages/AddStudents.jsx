@@ -55,7 +55,7 @@ const AddStudents = () => {
 
       <div className="w-full max-w-2xl bg-[#141414] border border-[#262626] rounded-2xl p-6 md:p-8 mx-auto">
         <p className="text-gray-400 mb-6 text-sm">
-          Search for students by their full name to add them to your class. Once added, you can track their progress in the Progress Report.
+          Search for students by their username to add them to your class. Once added, you can track their progress in the Progress Report.
         </p>
 
         <form onSubmit={handleSearch} className="relative mb-8">
@@ -64,7 +64,7 @@ const AddStudents = () => {
           </div>
           <input
             type="text"
-            placeholder="Search student name..."
+            placeholder="Search username..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#0d0d0d] border border-[#333] rounded-xl py-3 pl-12 pr-24 text-white focus:outline-none focus:border-primary-progress transition-colors"
