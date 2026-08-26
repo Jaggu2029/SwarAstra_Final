@@ -348,7 +348,7 @@ const ProgressReport = () => {
             <div className="glass-card p-6 min-h-[350px] lg:col-span-2">
               <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-gray-400" /> 
-                {trendData.length > 1 ? "Accuracy Trend (Moving Average)" : "Monthly Activity (Tests per Day)"}
+                {trendData.length > 1 ? "Accuracy Trend (Moving Average)" : "Monthly Activity (Questions per Day)"}
               </h3>
               {trendData.length > 1 ? (
                 <div className="h-[250px] w-full mt-4">
@@ -375,7 +375,7 @@ const ProgressReport = () => {
                         cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                         contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
                         labelFormatter={(label) => `Day ${label}`}
-                        formatter={(value) => [value, 'Tests Given']}
+                        formatter={(value) => [value, 'Questions Answered']}
                       />
                       <Bar dataKey="tests" fill="#22d3ee" radius={[4, 4, 0, 0]} maxBarSize={20} />
                     </BarChart>
