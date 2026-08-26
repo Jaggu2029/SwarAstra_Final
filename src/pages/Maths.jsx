@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLocale } from '../context/LocaleContext';
 import { useProgress } from '../context/ProgressContext';
+import { useSession } from '../context/SessionContext';
 import CategoryCard from '../components/CategoryCard';
 import { BookOpen, PenTool, ArrowLeft, Lock, CheckCircle2, PlayCircle, TrendingUp } from 'lucide-react';
 import { generateMathProblem } from '../utils/mathGenerator';
@@ -9,9 +10,14 @@ import { fetchMaterials } from '../services/materialService';
 
 const MathsMenu = () => {
   const { t } = useLocale();
+  const { profile } = useSession();
+  const isTeacher = profile?.role?.toLowerCase() === 'teacher';
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 max-w-4xl mx-auto">
-      <CategoryCard to="/maths/learning" title={t('learning') || 'શીખવું'} icon={BookOpen} colorClass="text-primary-maths" />
+    <div className={`grid grid-cols-1 ${isTeacher ? 'md:grid-cols-1 max-w-sm' : 'md:grid-cols-2 max-w-4xl'} gap-6 mt-8 mx-auto`}>
+      {!isTeacher && (
+        <CategoryCard to="/maths/learning" title={t('learning') || 'શીખવું'} icon={BookOpen} colorClass="text-primary-maths" />
+      )}
       <CategoryCard to="/maths/practice" title={t('practice') || 'પ્રેક્ટિસ'} icon={PenTool} colorClass="text-primary-maths" />
     </div>
   );
