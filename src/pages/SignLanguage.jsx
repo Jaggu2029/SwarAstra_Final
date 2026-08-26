@@ -462,14 +462,13 @@ const SignPractice = () => {
       <div style={{ width: "100%", maxWidth: 680, background: "#141414", border: "1px solid #262626", borderRadius: 20, padding: 24, display: "flex", flexDirection: "column", alignItems: "center", gap: 20, position: "relative" }}>
         
         <div style={{ width: "100%", aspectRatio: "16/9", background: "#080808", borderRadius: 16, border: "1px solid #222", overflow: "hidden", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {!capturedImageURL ? (
-            <video
-              ref={videoRef}
-              playsInline
-              muted
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: cameraActive ? "block" : "none", transform: "scaleX(-1)" }}
-            />
-          ) : (
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: (cameraActive && !capturedImageURL) ? "block" : "none", transform: "scaleX(-1)" }}
+          />
+          {capturedImageURL && (
             <img 
               src={capturedImageURL} 
               alt="Captured frame" 
