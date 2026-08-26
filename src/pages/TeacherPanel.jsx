@@ -1,8 +1,9 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "../context/SessionContext";
 import { supabase } from "../services/supabaseClient";
-import { ArrowLeft, Plus, Calculator, FlaskConical, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Calculator, FlaskConical, CheckCircle, Loader2, UploadCloud, FileVideo } from "lucide-react";
+import { uploadMaterial } from '../services/materialService';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const InputF = ({ label, value, onChange, placeholder, required, type = "text" }) => (
@@ -173,6 +174,90 @@ const ScienceForm = () => {
   );
 };
 
+// ── Upload Media Form ─────────────────────────────────────────────────────────────
+const UploadMediaForm = () => {
+  const { session } = useSession();
+  const [module, setModule] = useState("maths");
+  const [title, setTitle] = useState("");
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) {
+      setError("Please select a file to upload.");
+      return;
+    }
+    
+    setLoading(true); setError(""); setSuccess(false);
+    
+    const result = await uploadMaterial(session.user.id, file, module, title);
+    
+    setLoading(false);
+    if (!result.success) { 
+      setError(result.error); 
+    } else { 
+      setSuccess(true); 
+      setTitle(""); 
+      setFile(null);
+      document.getElementById('media-upload').value = '';
+      setTimeout(() => setSuccess(false), 4000); 
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-1.5">
+        <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider">Module</label>
+        <div className="grid grid-cols-2 gap-2">
+          {["maths", "science"].map((op) => (
+            <button
+              key={op}
+              type="button"
+              onClick={() => setModule(op)}
+              className={`px-3 py-2 rounded-xl text-sm font-semibold capitalize transition-all border ${
+                module === op
+                  ? "bg-emerald-500/20 border-emerald-500 text-emerald-500"
+                  : "bg-white/[0.03] border-white/10 text-gray-400 hover:border-white/20"
+              }`}
+            >
+              {op}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <InputF label="Media Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Addition Basics Video" required />
+      
+      <div className="space-y-1.5">
+        <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider">File (Video or Image)</label>
+        <input
+          id="media-upload"
+          type="file"
+          accept="video/*,image/*"
+          required
+          onChange={(e) => setFile(e.target.files[0])}
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-500 hover:file:bg-emerald-500/20"
+        />
+      </div>
+
+      {error && <p className="text-red-400 text-sm bg-red-500/10 px-4 py-2 rounded-xl border border-red-500/20">{error}</p>}
+      {success && (
+        <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 px-4 py-2 rounded-xl border border-green-500/20">
+          <CheckCircle size={16} /> Media uploaded successfully! Students can now see it.
+        </div>
+      )}
+
+      <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-all">
+        {loading ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
+        Upload Media
+      </button>
+    </form>
+  );
+};
+
 // ── Teacher Panel ─────────────────────────────────────────────────────────────
 const TeacherPanel = () => {
   const { profile } = useSession();
@@ -213,6 +298,7 @@ const TeacherPanel = () => {
           {[
             { id: "maths", label: "Maths", icon: Calculator, color: "text-primary-maths", active: "border-primary-maths text-primary-maths bg-primary-maths/5" },
             { id: "science", label: "Science", icon: FlaskConical, color: "text-primary-science", active: "border-primary-science text-primary-science bg-primary-science/5" },
+            { id: "media", label: "Upload Media", icon: FileVideo, color: "text-emerald-500", active: "border-emerald-500 text-emerald-500 bg-emerald-500/5" },
           ].map(({ id, label, icon: Icon, color, active }) => (
             <button
               key={id}
@@ -229,7 +315,9 @@ const TeacherPanel = () => {
 
         {/* Form content */}
         <div className="p-6 md:p-8">
-          {tab === "maths" ? <MathsForm /> : <ScienceForm />}
+          {tab === "maths" && <MathsForm />}
+          {tab === "science" && <ScienceForm />}
+          {tab === "media" && <UploadMediaForm />}
         </div>
       </div>
 

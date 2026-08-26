@@ -5,6 +5,7 @@ import { useProgress } from '../context/ProgressContext';
 import CategoryCard from '../components/CategoryCard';
 import { BookOpen, PenTool, ArrowLeft, Lock, CheckCircle2, PlayCircle, TrendingUp } from 'lucide-react';
 import { generateMathProblem } from '../utils/mathGenerator';
+import { fetchMaterials } from '../services/materialService';
 
 const MathsMenu = () => {
   const { t } = useLocale();
@@ -17,12 +18,57 @@ const MathsMenu = () => {
 };
 
 const MathsLearning = () => {
+  const [materials, setMaterials] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchMaterials('maths');
+      setMaterials(data);
+      setLoading(false);
+    };
+    loadData();
+  }, []);
+
   return (
-    <div className="mt-8 text-center">
-      <h2 className="text-2xl font-bold mb-6 text-primary-maths">Learning / શીખવું</h2>
-      <div className="glass-card p-8">
-        <p className="text-xl text-gray-300">Basic maths learning content goes here...</p>
-      </div>
+    <div className="mt-8 max-w-4xl mx-auto">
+      <h2 className="text-3xl font-bold mb-8 text-primary-maths text-center">Learning Materials / શીખવાની સામગ્રી</h2>
+      
+      {loading ? (
+        <div className="flex justify-center p-12">
+          <div className="w-10 h-10 border-4 border-primary-maths/30 border-t-primary-maths rounded-full animate-spin"></div>
+        </div>
+      ) : materials.length === 0 ? (
+        <div className="glass-card p-12 text-center text-gray-400">
+          <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-20 text-primary-maths" />
+          <p className="text-xl">No learning materials available yet.</p>
+          <p className="text-sm mt-2">Ask your teacher to upload videos or images!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {materials.map((m) => (
+            <div key={m.id} className="glass-card overflow-hidden rounded-2xl group border border-white/5 hover:border-primary-maths/30 transition-all shadow-lg hover:shadow-primary-maths/10 flex flex-col">
+              <div className="aspect-video bg-black/60 relative flex items-center justify-center overflow-hidden">
+                {m.file_type === 'video' ? (
+                  <video src={m.file_url} controls className="w-full h-full object-contain" />
+                ) : (
+                  <img src={m.file_url} alt={m.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                )}
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between">
+                <h3 className="font-bold text-lg text-white mb-3 leading-tight">{m.title}</h3>
+                <div className="flex items-center gap-2 text-xs text-gray-400 font-medium mt-auto">
+                  <span className="uppercase tracking-wider px-2.5 py-1 bg-white/5 rounded-md border border-white/10">
+                    {m.file_type}
+                  </span>
+                  <span>•</span>
+                  <span>{new Date(m.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
