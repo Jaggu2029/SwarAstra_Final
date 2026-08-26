@@ -33,3 +33,6 @@ __pycache__/
 venv/
 *.joblib.bak
 
+# Large binary files (download separately or use LFS)
+*.mp4
+*.task

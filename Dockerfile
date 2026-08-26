@@ -20,4 +20,4 @@ COPY SwarAstra/ .
 
 EXPOSE 5000
 
-CMD ["python", "model_api.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "model_api:app"]

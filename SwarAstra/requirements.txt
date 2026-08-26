@@ -2,14 +2,11 @@ flask
 flask-cors
 python-dotenv
 google-genai
-streamlit
 opencv-python
 
 mediapipe
 scikit-learn
 numpy
-pandas
 joblib
 Pillow
 gunicorn
-

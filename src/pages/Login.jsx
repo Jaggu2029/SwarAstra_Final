@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocale } from "../context/LocaleContext";
+import { useSession } from "../context/SessionContext";
 import { signUpUser, signInUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Mail, Lock, User, BookOpen, GraduationCap, ArrowLeft } from "lucide-react";
@@ -23,6 +24,7 @@ const InputField = ({ icon: Icon, label, type, value, onChange, placeholder, req
 const Login = () => {
   const { t } = useLocale();
   const navigate = useNavigate();
+  const { refreshProfile } = useSession();
 
   // Screen steps: "ask_age" -> "ask_role" (if 14+) -> "auth_form"
   const [flowStep, setFlowStep] = useState("ask_age");
@@ -82,6 +84,10 @@ const Login = () => {
     try {
       if (isSignUp) {
         await signUpUser(email, password, fullName, role);
+        // Wait for the profile to be available in the DB before navigating
+        // This fixes the race condition where onAuthStateChange fires before
+        // the profile row is inserted, causing "hallucination" on hosted sites
+        await refreshProfile();
       } else {
         await signInUser(email, password);
       }
