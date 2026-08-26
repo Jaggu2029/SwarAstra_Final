@@ -210,20 +210,26 @@ const SignLearning = () => {
 
 
 const SAMPLE_CHALLENGES = [
-  { label: 'ka', gu: 'ક', name: 'Ka' },
+  { label: 'ja', gu: 'જ', name: 'Ja' },
+  { label: 'jha', gu: 'ઝ', name: 'Zha' },
   { label: 'kha', gu: 'ખ', name: 'Kha' },
+  { label: 'ka', gu: 'ક', name: 'Ka' },
+  { label: 'tthaaa', gu: 'ઠ', name: 'Tha' },
+  { label: 'ra', gu: 'ર', name: 'Ra' },
+  { label: 'la', gu: 'લ', name: 'La' },
+  { label: 'va', gu: 'વ', name: 'Va' },
+  { label: 'tha', gu: 'થ', name: 'Tha' },
+  { label: 'pha', gu: 'ફ', name: 'Pha' },
+  
+  // Remaining signs
   { label: 'ga', gu: 'ગ', name: 'Ga' },
   { label: 'gha', gu: 'ઘ', name: 'Gha' },
   { label: 'cha', gu: 'ચ', name: 'Cha' },
-  { label: 'ja', gu: 'જ', name: 'Ja' },
   { label: 'ta', gu: 'ત', name: 'Ta' },
   { label: 'da', gu: 'દ', name: 'Da' },
   { label: 'na', gu: 'ન', name: 'Na' },
   { label: 'pa', gu: 'પ', name: 'Pa' },
   { label: 'ma', gu: 'મ', name: 'Ma' },
-  { label: 'ra', gu: 'ર', name: 'Ra' },
-  { label: 'la', gu: 'લ', name: 'La' },
-  { label: 'va', gu: 'વ', name: 'Va' },
   { label: 'sa', gu: 'સ', name: 'Sa' },
   { label: 'ha', gu: 'હ', name: 'Ha' },
 ];
