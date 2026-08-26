@@ -131,7 +131,7 @@ def normalize_landmarks(landmarks):
 
 
 def predict_sign(pil_image):
-    """Tries both orientations automatically, same as the Streamlit app."""
+    """Tries both orientations automatically, with early-exit optimization for speed."""
     image_rgb = np.array(pil_image.convert("RGB"))
 
     candidates = []
@@ -152,6 +152,10 @@ def predict_sign(pil_image):
         if hasattr(model, "predict_proba"):
             confidence = float(model.predict_proba(feats)[0][pred_idx])
 
+        # Early-exit optimization: if non-mirrored frame has high confidence, return immediately to save a full MediaPipe run
+        if not mirror and confidence is not None and confidence >= 0.70:
+            return label, confidence
+
         candidates.append((confidence if confidence is not None else 0.0, label, confidence))
 
     if not candidates:
@@ -160,6 +164,7 @@ def predict_sign(pil_image):
     candidates.sort(key=lambda c: c[0], reverse=True)
     _, label, confidence = candidates[0]
     return label, confidence
+
 
 
 @app.route("/health", methods=["GET"])
